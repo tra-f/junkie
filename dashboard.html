@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>輸送責任ロガー 管理ダッシュボード</title>
+<style>
+:root{--bg:#f6f8fa;--s:#fff;--t:#15202b;--m:#5b6b7a;--l:#d9e0e6;--a:#0b6e8a;--w:#c2410c;--ok:#15803d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e151b;--s:#16212a;--t:#e6edf3;--m:#93a4b3;--l:#27384a;--a:#4cc2e0;--w:#fb923c;--ok:#4ade80}}
+:root[data-theme="dark"]{--bg:#0e151b;--s:#16212a;--t:#e6edf3;--m:#93a4b3;--l:#27384a;--a:#4cc2e0;--w:#fb923c;--ok:#4ade80}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;line-height:1.7}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:var(--m);margin:0 0 20px;font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.card{background:var(--s);border:1px solid var(--l);border-radius:14px;padding:16px;flex:1 1 200px}
+.k{font-size:12px;color:var(--m)}
+.v{font-size:28px;font-weight:700}
+.v.bad{color:var(--w)}
+button{font:inherit;background:var(--a);color:var(--bg);border:0;border-radius:10px;padding:8px 16px;cursor:pointer}
+button.ghost{background:transparent;color:var(--a);border:1px solid var(--a)}
+button:disabled{opacity:.5;cursor:default}
+.st{font-size:13px;color:var(--m)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--m);margin-right:6px}
+.dot.on{background:var(--ok)}
+h2{font-size:18px;margin:24px 0 8px}
+textarea{width:100%;min-height:90px;background:var(--s);color:var(--t);border:1px solid var(--l);border-radius:10px;padding:10px;font:13px ui-monospace,monospace}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:var(--s);border:1px solid var(--l);min-width:640px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--l);font-size:14px;vertical-align:top}
+th{font-size:12px;color:var(--m)}
+.badge{font-size:12px;padding:1px 10px;border-radius:99px;border:1px solid var(--w);color:var(--w);white-space:nowrap}
+a{color:var(--a)}
+.msg{color:var(--m);font-size:13px;margin:6px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="sub"><a href="index.html">← 紹介ページへ戻る</a></p>
+<h1>輸送責任ロガー 管理ダッシュボード</h1>
+<p class="sub">異常ログはリアルタイムに表示され、このブラウザに保存されます。</p>
+
+<div class="row">
+<div class="card"><div class="k">温度</div><div class="v" id="vT">–</div></div>
+<div class="card"><div class="k">気圧</div><div class="v" id="vP">–</div></div>
+<div class="card"><div class="k">衝撃</div><div class="v" id="vG">–</div></div>
+<div class="card"><div class="k">保存済み異常ログ</div><div class="v" id="vN">0</div></div>
+</div>
+
+<div class="row" style="align-items:center">
+<button id="bConn">ESP32に接続（USB）</button>
+<button id="bCsv" class="ghost">CSVで保存</button>
+<span class="st"><span class="dot" id="dot"></span><span id="stat">未接続</span></span>
+</div>
+<p class="msg" id="err"></p>
+
+<details>
+<summary class="st">接続できない場合：シリアル出力を貼り付けて取り込む</summary>
+<textarea id="paste" placeholder="Arduinoのシリアルモニターの出力をここに貼り付け"></textarea>
+<button id="bPaste" class="ghost" style="margin-top:8px">取り込んで保存</button>
+</details>
+
+<h2>異常ログ（新しい順）</h2>
+<div class="scroll"><table>
+<thead><tr><th>日時</th><th>種別</th><th>内容</th><th>発生位置</th></tr></thead>
+<tbody id="rows"><tr><td colspan="4" class="msg">読み込み中…</td></tr></tbody>
+</table></div>
+<p class="msg">日時は、ログを受信したパソコンの時刻です（ESP32には時計がないため）。</p>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const KIND={"温度":"温度異常","衝撃":"衝撃検知","気圧":"気圧急変"};
+let me="", cache=[], inBlock=false, block=[];
+
+function parseBlock(lines){
+  const msg=lines.find(l=>l.includes("【警告】"));
+  if(!msg) return null;
+  const kind=Object.keys(KIND).find(k=>msg.includes(k));
+  const pos=lines.join("\n").match(/Lat=(-?[\d.]+),\s*Lng=(-?[\d.]+)/);
+  const url=(lines.join("\n").match(/https:\/\/maps\.google\.com\/\?q=-?[\d.]+,-?[\d.]+/)||[])[0]||"";
+  return {ts:Date.now(),kind:KIND[kind]||"その他",message:msg.replace("【警告】","").trim(),
+    lat:pos?+pos[1]:null,lng:pos?+pos[2]:null,url,gps:pos?"測位済み":"測位中",by:me||""};
+}
+async function handleLine(raw){
+  const line=raw.trim(); if(!line) return;
+  if(/^-{10,}$/.test(line)){
+    if(inBlock){inBlock=false; const r=parseBlock(block); block=[]; if(r) await save(r);}
+    else {inBlock=true; block=[];}
+    return;
+  }
+  if(inBlock){block.push(line); return;}
+  const m=line.match(/温度:\s*(-?[\d.]+).*気圧:\s*(-?[\d.]+).*衝撃:\s*(-?[\d.]+)/);
+  if(m){
+    $("vT").textContent=m[1]+" ℃"; $("vP").textContent=m[2]+" hPa"; $("vG").textContent=m[3]+" G";
+    $("vT").classList.toggle("bad",+m[1]>35); $("vG").classList.toggle("bad",+m[3]>=2);
+  }
+}
+const KEY="transport-logs-v1";
+function load(){try{cache=JSON.parse(localStorage.getItem(KEY)||"[]");}catch(e){cache=[];}}
+async function save(rec){
+  cache.unshift(rec); cache=cache.slice(0,500);
+  try{localStorage.setItem(KEY,JSON.stringify(cache));}catch(e){$("err").textContent="このブラウザには保存できませんでした。CSVで保存してください。";}
+  render();
+}
+function render(){
+  const tb=$("rows"); tb.textContent="";
+  $("vN").textContent=cache.length;
+  if(!cache.length){const tr=tb.insertRow(),td=tr.insertCell();td.colSpan=4;td.className="msg";td.textContent="まだ異常ログはありません。";return;}
+  for(const d of cache){
+    const tr=tb.insertRow();
+    tr.insertCell().textContent=new Date(d.ts).toLocaleString("ja-JP");
+    const b=document.createElement("span");b.className="badge";b.textContent=d.kind;tr.insertCell().appendChild(b);
+    tr.insertCell().textContent=d.message;
+    const c=tr.insertCell();
+    if(d.lat!=null&&String(d.url).startsWith("https://maps.google.com/?q=")){
+      const a=document.createElement("a");a.href=d.url;a.target="_blank";a.rel="noopener";
+      a.textContent=d.lat.toFixed(6)+", "+d.lng.toFixed(6);c.appendChild(a);
+    }else c.textContent="測位中";
+  }
+}
+function init(){load();render();}
+$("bConn").onclick=async()=>{
+  $("err").textContent="";
+  if(!("serial" in navigator)){$("err").textContent="このブラウザではUSB接続を使えません。PCのChrome／Edgeで開くか、下の貼り付けをお使いください。";return;}
+  try{
+    const port=await navigator.serial.requestPort();
+    await port.open({baudRate:115200});
+    $("dot").classList.add("on");$("stat").textContent="受信中（115200bps）";$("bConn").disabled=true;
+    const reader=port.readable.pipeThrough(new TextDecoderStream()).getReader();
+    let buf="";
+    for(;;){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=value; const parts=buf.split(/\r?\n/); buf=parts.pop();
+      for(const p of parts) await handleLine(p);
+    }
+  }catch(e){$("err").textContent="接続できませんでした："+(e.message||e);}
+  $("dot").classList.remove("on");$("stat").textContent="未接続";$("bConn").disabled=false;
+};
+$("bPaste").onclick=async()=>{
+  for(const l of $("paste").value.split(/\r?\n/)) await handleLine(l);
+  $("paste").value="";
+};
+$("bCsv").onclick=()=>{
+  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  const csv="\uFEFF日時,種別,内容,緯度,経度,URL\n"+cache.map(d=>[new Date(d.ts).toLocaleString("ja-JP"),d.kind,d.message,d.lat??"",d.lng??"",d.url].map(q).join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="transport-log.csv";a.click();
+};
+init();
+</script>
+</body>
+</html>
