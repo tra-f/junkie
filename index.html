@@ -38,6 +38,7 @@ th{color:var(--muted);font-size:13px}
 pre{background:var(--code);color:var(--codetext);padding:18px;border-radius:12px;overflow-x:auto;font-size:13.5px;line-height:1.7;margin:0}
 .note{font-size:13px;color:var(--muted);margin-top:8px}
 .value{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.login{max-width:420px}.login label{display:block;font-size:14px;color:var(--muted);margin-top:12px}.login input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}.login button,.login a.go{display:inline-block;margin-top:16px;font:inherit;background:var(--accent);color:var(--bg);border:0;border-radius:10px;padding:10px 20px;cursor:pointer;text-decoration:none}.login .er{color:var(--warn);font-size:14px;min-height:1.4em;margin-top:8px}
 footer{padding:40px 0 56px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:48px}
 </style>
 </head>
@@ -110,8 +111,33 @@ footer{padding:40px 0 56px;color:var(--muted);font-size:13px;border-top:1px soli
 [GPS ] 測位状態：測位中</pre>
 <p class="note">※ 上記は表示イメージ用のサンプルです（実測データではありません）。</p>
 </section>
+<section id="login">
+<h2><small>LOGIN</small>管理ダッシュボードへログイン</h2>
+<p class="sub">ログインすると、輸送中のログをリアルタイムで確認できます（テスト用アカウント）。</p>
+<div class="card login" id="loginCard">
+<label for="uid">ID</label><input id="uid" autocomplete="username">
+<label for="pw">パスワード</label><input id="pw" type="password" autocomplete="current-password">
+<div class="er" id="er"></div>
+<button id="go">ログイン</button>
+</div>
+</section>
 </main>
 
 <footer><div class="wrap">大学プロジェクト授業 企画書掲載用｜システム制御・処理アルゴリズムの概要</div></footer>
+<script>
+var DASH="dashboard.html";
+function doLogin(){
+ var u=document.getElementById("uid").value.trim(),p=document.getElementById("pw").value;
+ var er=document.getElementById("er");
+ if(u==="aaa"&&p==="1234"){
+  var c=document.getElementById("loginCard");c.textContent="";
+  var m=document.createElement("p");m.textContent="ログインしました。";m.style.margin="0";
+  var a=document.createElement("a");a.className="go";a.href=DASH;a.textContent="管理ダッシュボードを開く";
+  c.appendChild(m);c.appendChild(a);
+ }else{er.textContent="IDまたはパスワードが違います。";}
+}
+document.getElementById("go").addEventListener("click",doLogin);
+document.getElementById("pw").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin();});
+</script>
 </body>
 </html>
