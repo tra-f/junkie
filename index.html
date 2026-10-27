@@ -5,103 +5,321 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>輸送責任ロガー｜責任の所在を、データで明らかにする</title>
 <style>
-:root{--bg:#f6f8fa;--surface:#fff;--text:#15202b;--muted:#5b6b7a;--line:#d9e0e6;--accent:#0b6e8a;--warn:#c2410c;--ok:#15803d;--code:#0f1b26;--codetext:#d6e4ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e151b;--surface:#16212a;--text:#e6edf3;--muted:#93a4b3;--line:#27384a;--accent:#4cc2e0;--warn:#fb923c;--ok:#4ade80;--code:#0a1117;--codetext:#d6e4ee}}
-:root[data-theme="dark"]{--bg:#0e151b;--surface:#16212a;--text:#e6edf3;--muted:#93a4b3;--line:#27384a;--accent:#4cc2e0;--warn:#fb923c;--ok:#4ade80;--code:#0a1117;--codetext:#d6e4ee}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{
+  --navy:#12263a;
+  --text:#2b3138;
+  --muted:#5d6872;
+  --line:#c9cfd4;
+  --accent:#0b6e8a;
+  --warn:#c2410c;
+  --code:#0f1b26;
+  --codetext:#d6e4ee;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;line-height:1.8}
-.wrap{max-width:980px;margin:0 auto;padding:0 20px}
-header.hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
-.tag{display:inline-block;font-size:13px;color:var(--accent);border:1px solid var(--accent);padding:2px 12px;border-radius:99px;margin-bottom:16px}
-h1{font-size:clamp(28px,5vw,44px);line-height:1.3;margin:0 0 16px}
-.lead{color:var(--muted);font-size:17px;max-width:720px;margin:0}
-section{padding:44px 0 8px}
-h2{font-size:24px;margin:0 0 8px}
-h2 small{display:block;font-size:13px;color:var(--accent);font-weight:600;letter-spacing:.08em}
-p.sub{color:var(--muted);margin:0 0 20px}
-.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
-.card h3{margin:0 0 6px;font-size:18px}
-.card p{margin:6px 0 0;color:var(--muted);font-size:15px}
-.big{font-size:32px;font-weight:700;color:var(--warn);line-height:1.2}
-.chip{font-size:12px;color:var(--muted)}
-.flow{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));counter-reset:s}
-.step{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;position:relative}
-.step::before{counter-increment:s;content:counter(s);display:inline-flex;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--bg);align-items:center;justify-content:center;font-weight:700;margin-bottom:8px}
-.step b{display:block}
-.step span{color:var(--muted);font-size:14px}
+html{scroll-behavior:smooth;scroll-padding-top:100px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;color:var(--text);
+  font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  letter-spacing:.06em;line-height:2;
+  background:linear-gradient(180deg,#e7eaed 0%,#f3f4f5 45%,#e5e8eb 100%);
+  background-attachment:fixed;
+}
+
+/* ── 固定ヘッダー（ロゴ／メニュー） ── */
+.logo{
+  position:fixed;z-index:50;top:calc(16px + env(safe-area-inset-top,0px));left:20px;
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border-radius:99px;padding:12px 24px 12px 18px;
+  box-shadow:0 4px 18px rgba(20,30,40,.14);
+  color:var(--navy);font-weight:700;font-size:20px;letter-spacing:.04em;text-decoration:none;line-height:1.2;
+}
+.logo svg{width:30px;height:30px;flex:none}
+.menu-btn{
+  position:fixed;z-index:60;top:calc(16px + env(safe-area-inset-top,0px));right:20px;
+  width:58px;height:58px;border-radius:50%;border:0;background:#fff;cursor:pointer;
+  box-shadow:0 4px 18px rgba(20,30,40,.14);display:grid;place-items:center;
+}
+.menu-btn span,.menu-btn span::before,.menu-btn span::after{
+  display:block;width:24px;height:2px;background:var(--navy);content:"";position:relative;transition:transform .2s,background .2s;
+}
+.menu-btn span::before{position:absolute;top:-8px;left:0}
+.menu-btn span::after{position:absolute;top:8px;left:0;width:16px}
+.menu-btn[aria-expanded="true"] span{background:transparent}
+.menu-btn[aria-expanded="true"] span::before{transform:translateY(8px) rotate(45deg)}
+.menu-btn[aria-expanded="true"] span::after{transform:translateY(-8px) rotate(-45deg);width:24px}
+.menu-btn:focus-visible,.top-btn:focus-visible,a:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+nav#menu{
+  position:fixed;z-index:55;inset:0;background:rgba(18,38,58,.96);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;
+  opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;
+}
+nav#menu.open{opacity:1;visibility:visible}
+nav#menu a{color:#fff;text-decoration:none;font-size:20px;padding:10px 24px;border-bottom:1px solid transparent}
+nav#menu a:hover{border-bottom-color:#4cc2e0}
+
+/* ── ページ送り（先頭へ戻る） ── */
+.top-btn{
+  position:fixed;z-index:40;right:0;bottom:calc(32px + env(safe-area-inset-bottom,0px));
+  width:62px;height:62px;border:0;border-radius:10px 0 0 10px;background:#2c3338;color:#fff;cursor:pointer;
+  display:grid;place-items:center;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;
+}
+.top-btn.show{opacity:1;visibility:visible}
+.top-btn svg{width:26px;height:26px}
+
+/* ── レイアウト ── */
+main{max-width:1600px;margin:0 auto;padding:110px 112px 40px}
+.panel{
+  background:linear-gradient(135deg,#fff 0%,#f1f2f3 100%);
+  border-radius:8px;box-shadow:0 8px 28px rgba(20,30,40,.08);
+  padding:56px 60px 52px;margin:0 0 60px;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,600px);gap:48px;align-items:start;
+}
+.panel.single{grid-template-columns:minmax(0,1fr)}
+.panel h1,.panel h2{
+  margin:0 0 22px;padding-bottom:14px;border-bottom:1px solid var(--line);
+  color:var(--navy);font-weight:700;line-height:1.5;
+}
+.panel h2{font-size:30px}
+.panel h1{font-size:clamp(28px,3.4vw,42px)}
+.panel p{margin:0 0 1.4em;font-size:16px}
+.panel p:last-child{margin-bottom:0}
+.kicker{display:inline-block;font-size:14px;color:var(--accent);margin-bottom:10px}
+.visual{margin:0;border-radius:2px;overflow:hidden;align-self:start}
+.visual svg,.visual img{display:block;width:100%;height:auto}
+.panel .full{grid-column:1 / -1}
+strong.lead-in{color:var(--navy)}
+
+/* ── 構成 ── */
+dl.parts{margin:0}
+dl.parts dt{font-weight:700;color:var(--navy);margin-top:.6em}
+dl.parts dd{margin:0 0 .6em;color:var(--muted);font-size:15px}
+
+/* ── 動作の流れ ── */
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;position:relative;padding:0 0 20px 54px}
+ol.steps li::before{
+  content:counter(s);position:absolute;left:0;top:2px;width:36px;height:36px;border-radius:50%;
+  background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;letter-spacing:0;
+}
+ol.steps li::after{content:"";position:absolute;left:17px;top:42px;bottom:4px;width:2px;background:var(--line)}
+ol.steps li:last-child::after{display:none}
+ol.steps b{display:block;color:var(--navy)}
+ol.steps span{display:block;color:var(--muted);font-size:15px;line-height:1.8}
+
+/* ── 検知基準 ── */
+.metrics{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin:6px 0 10px}
+.metric{border-left:3px solid var(--warn);padding:2px 0 2px 18px}
+.metric .k{font-size:14px;color:var(--muted)}
+.metric .v{font-size:34px;font-weight:700;color:var(--warn);line-height:1.4;letter-spacing:.02em}
+.metric p{font-size:14.5px;color:var(--muted);margin:4px 0 0}
+.note{font-size:13px;color:var(--muted)}
 .scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:560px}
-th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:15px;vertical-align:top}
-th{color:var(--muted);font-size:13px}
-pre{background:var(--code);color:var(--codetext);padding:18px;border-radius:12px;overflow-x:auto;font-size:13.5px;line-height:1.7;margin:0}
-.note{font-size:13px;color:var(--muted);margin-top:8px}
-.value{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-.login{max-width:420px}.login label{display:block;font-size:14px;color:var(--muted);margin-top:12px}.login input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}.login button,.login a.go{display:inline-block;margin-top:16px;font:inherit;background:var(--accent);color:var(--bg);border:0;border-radius:10px;padding:10px 20px;cursor:pointer;text-decoration:none}.login .er{color:var(--warn);font-size:14px;min-height:1.4em;margin-top:8px}
-footer{padding:40px 0 56px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:48px}
+table{width:100%;border-collapse:collapse;min-width:560px;background:#fff}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);font-size:15px;vertical-align:top}
+th{background:#eef1f3;color:var(--navy);font-size:14px}
+
+/* ── ログ ── */
+pre{
+  margin:0;background:var(--code);color:var(--codetext);padding:20px;border-radius:2px;
+  font-size:13.5px;line-height:1.8;letter-spacing:0;white-space:pre-wrap;word-break:break-all;
+  font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Noto Sans JP",monospace;
+}
+
+/* ── ログイン ── */
+.login{background:#fff;border:1px solid var(--line);border-radius:6px;padding:24px 26px;max-width:480px}
+.login label{display:block;font-size:14px;color:var(--muted);margin-top:12px;line-height:1.6}
+.login label:first-child{margin-top:0}
+.login input{width:100%;font:inherit;letter-spacing:.04em;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--text)}
+.login button,.login a.go{display:inline-block;margin-top:18px;font:inherit;font-weight:700;background:var(--navy);color:#fff;border:0;border-radius:6px;padding:11px 28px;cursor:pointer;text-decoration:none;line-height:1.6}
+.login .er{color:var(--warn);font-size:14px;min-height:1.6em;margin-top:8px;line-height:1.6}
+.login p{margin:0 0 12px}
+
+footer{max-width:1600px;margin:0 auto;padding:10px 112px 56px;color:var(--muted);font-size:13px;text-align:center}
+
+/* ── レスポンシブ ── */
+@media (max-width:1100px){
+  main{padding:104px 28px 30px}
+  footer{padding:10px 28px 56px}
+  .panel{padding:40px 36px;gap:32px}
+}
+@media (max-width:820px){
+  .panel{grid-template-columns:minmax(0,1fr);padding:30px 22px;margin-bottom:36px}
+  .panel h2{font-size:24px}
+  .logo{font-size:16px;padding:9px 16px 9px 12px;left:12px}
+  .logo svg{width:24px;height:24px}
+  .menu-btn{width:50px;height:50px;right:12px}
+  main{padding:88px 14px 20px}
+  .metric .v{font-size:28px}
+}
 </style>
 </head>
 <body>
-<header class="hero"><div class="wrap">
-<span class="tag">輸送品質モニタリングシステム</span>
-<h1>「いつ・どこで・何が起きたか」を、<br>輸送中のデータで証明する。</h1>
-<p class="lead">荷物の中に入れるだけで、温度・衝撃・気圧・位置情報を自動で記録。買い手から発送元へ問い合わせが入ったとき、輸送会社が客観的なログで責任の所在を明らかにできます。</p>
-</div></header>
 
-<main class="wrap">
-<section>
-<h2><small>PURPOSE</small>導入の目的</h2>
-<p class="sub">輸送中のトラブルは、原因が見えないほど責任の押し付け合いになりがちです。</p>
-<div class="value">
-<div class="card"><h3>責任の所在を明確化</h3><p>異常の種類・時刻・場所を記録し、輸送区間のどこで起きたかを客観的に示します。</p></div>
-<div class="card"><h3>問い合わせへの迅速な対応</h3><p>買い手や発送元からの確認に、感覚ではなくデータで回答できます。</p></div>
-<div class="card"><h3>不正開封・事故の抑止</h3><p>記録されていること自体が、乱暴な取り扱いや不正への抑止力になります。</p></div>
-</div>
-</section>
+<!-- 固定ロゴ -->
+<a class="logo" href="#top" aria-label="輸送責任ロガー トップへ">
+  <svg viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#12263a"/><path d="M5 17l4-1 3 6 4-13 3 9 2-3 4 2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  輸送責任ロガー
+</a>
 
-<section>
-<h2><small>HARDWARE</small>システム構成</h2>
-<p class="sub">ESP32を中心に、環境センサーとGPSを制御する自律型プログラムです。</p>
-<div class="grid">
-<div class="card"><h3>ESP32</h3><p>全体の制御と判定処理を担当するマイコン。</p></div>
-<div class="card"><h3>BMP280</h3><p>温度と気圧を計測。温度管理の逸脱と気圧の急変を検知します。</p></div>
-<div class="card"><h3>MPU6050</h3><p>3軸加速度を計測。落下・衝突の衝撃を検知します。</p></div>
-<div class="card"><h3>GPSモジュール（NEO-6M等）</h3><p>異常発生地点の緯度・経度を取得します。</p></div>
-</div>
-</section>
+<!-- メニュー -->
+<button class="menu-btn" id="menuBtn" aria-label="メニューを開く" aria-expanded="false" aria-controls="menu"><span></span></button>
+<nav id="menu" aria-label="ページ内メニュー">
+  <a href="#purpose">導入の目的</a>
+  <a href="#hardware">システム構成</a>
+  <a href="#process">動作の流れ</a>
+  <a href="#detection">異常検知の基準</a>
+  <a href="#location">位置情報の紐づけ</a>
+  <a href="#login">ログイン</a>
+</nav>
 
-<section>
-<h2><small>PROCESS</small>動作の流れ</h2>
-<p class="sub">常時受信と定時計測を組み合わせ、消費電力を抑えながら異常の瞬間を逃しません。</p>
-<div class="flow">
-<div class="step"><b>GPSを常時受信</b><span>Serial2経由でバックグラウンド受信し、最新の位置・高度を保持。</span></div>
-<div class="step"><b>1秒ごとに計測</b><span>温度・気圧・3軸加速度を一括取得。CPU負荷とバッテリー消費を抑制。</span></div>
-<div class="step"><b>しきい値で判定</b><span>温度・衝撃・気圧の3項目を複合的にチェック。</span></div>
-<div class="step"><b>異常時にログ出力</b><span>handleAnomaly()が起動し、アラートと位置情報URLを記録。</span></div>
-</div>
-</section>
+<button class="top-btn" id="topBtn" aria-label="ページの先頭へ戻る">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V5M5 12l7-7 7 7"/></svg>
+</button>
 
-<section>
-<h2><small>DETECTION</small>異常検知の基準</h2>
-<p class="sub">3つの指標を組み合わせて、輸送中のリスクを監視します。</p>
-<div class="grid">
-<div class="card"><div class="chip">温度異常</div><div class="big">35.0℃ 超</div><p>薬品や高級食品などの「温度管理逸脱」として判定します。</p></div>
-<div class="card"><div class="chip">衝撃検知</div><div class="big">2.0G 以上</div><p>3軸の合成ベクトルから「落下・衝突事故」を判定します。</p></div>
-<div class="card"><div class="chip">気圧急変</div><div class="big">5.0hPa 以上</div><p>短時間の変動から「不正開封」または「高所からの急落下」を判定します。</p></div>
-</div>
-<p class="note">衝撃の合成加速度：G = √(aₓ² + aᵧ² + a_z²)（重力加速度換算）／気圧：前回計測値との差分ΔPで判定</p>
-<div class="scroll" style="margin-top:16px"><table>
-<tr><th>項目</th><th>使用センサー</th><th>判定条件</th><th>想定される事象</th></tr>
-<tr><td>温度</td><td>BMP280</td><td>35.0℃を超過</td><td>温度管理の逸脱</td></tr>
-<tr><td>衝撃</td><td>MPU6050</td><td>合成加速度 2.0G以上</td><td>落下・衝突事故</td></tr>
-<tr><td>気圧</td><td>BMP280</td><td>前回比 ΔP ≧ 5.0hPa</td><td>梱包の不正開封／高所からの急落下</td></tr>
-</table></div>
-</section>
+<main id="top">
 
-<section>
-<h2><small>LOCATION LOG</small>位置情報の紐づけ</h2>
-<p class="sub">異常を検知した瞬間の「正確な緯度・経度（小数点以下6桁）」から、Google Maps用URLを自動生成。クリックするだけで発生場所を確認できます。衛星未捕捉の場合は「測位中」のフラグを出力します。</p>
+  <!-- ヒーロー -->
+  <section class="panel">
+    <div>
+      <span class="kicker">輸送品質モニタリングシステム</span>
+      <h1>「いつ・どこで・何が起きたか」を、輸送中のデータで証明する。</h1>
+      <p>荷物の中に入れるだけで、温度・衝撃・気圧・位置情報を自動で記録。買い手から発送元へ問い合わせが入ったとき、輸送会社が客観的なログで責任の所在を明らかにできます。</p>
+    </div>
+    <!-- ↓ 写真に差し替える場合：<img src="images/hero.jpg" alt="..."> に置き換えてください -->
+    <figure class="visual">
+      <svg viewBox="0 0 600 340" role="img" aria-label="輸送ルート上で異常が記録されるイメージ">
+        <defs>
+          <linearGradient id="gH" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d2233"/><stop offset="1" stop-color="#0b6e8a"/></linearGradient>
+          <pattern id="gridH" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#fff" stroke-opacity=".08"/></pattern>
+        </defs>
+        <rect width="600" height="340" fill="url(#gH)"/>
+        <rect width="600" height="340" fill="url(#gridH)"/>
+        <path d="M50 270 C150 270 160 120 260 140 S400 250 470 130 S540 80 560 60" fill="none" stroke="#4cc2e0" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"/>
+        <path d="M50 270 C150 270 160 120 260 140" fill="none" stroke="#4cc2e0" stroke-width="4" stroke-linecap="round"/>
+        <rect x="32" y="252" width="36" height="36" rx="4" fill="#fff"/>
+        <path d="M40 270h20M50 260v20" stroke="#12263a" stroke-width="3"/>
+        <circle cx="260" cy="140" r="30" fill="#fb923c" fill-opacity=".18"/>
+        <circle cx="260" cy="140" r="18" fill="#fb923c" fill-opacity=".35"/>
+        <circle cx="260" cy="140" r="8" fill="#fb923c"/>
+        <rect x="290" y="96" width="132" height="52" rx="6" fill="#fff"/>
+        <text x="304" y="118" font-size="14" font-weight="700" fill="#c2410c" font-family="sans-serif">衝撃 2.84G</text>
+        <text x="304" y="138" font-size="12" fill="#5d6872" font-family="sans-serif">緯度・経度を記録</text>
+        <circle cx="560" cy="60" r="9" fill="#fff"/>
+      </svg>
+    </figure>
+  </section>
+
+  <!-- 導入の目的 -->
+  <section class="panel" id="purpose">
+    <div>
+      <h2>導入の目的</h2>
+      <p>輸送中のトラブルは、原因が見えないほど責任の押し付け合いになりがちです。</p>
+      <p><strong class="lead-in">責任の所在を明確化</strong><br>異常の種類・時刻・場所を記録し、輸送区間のどこで起きたかを客観的に示します。</p>
+      <p><strong class="lead-in">問い合わせへの迅速な対応</strong><br>買い手や発送元からの確認に、感覚ではなくデータで回答できます。</p>
+      <p><strong class="lead-in">不正開封・事故の抑止</strong><br>記録されていること自体が、乱暴な取り扱いや不正への抑止力になります。</p>
+    </div>
+    <figure class="visual">
+      <svg viewBox="0 0 600 340" role="img" aria-label="輸送区間のどこで異常が起きたかを示す地図のイメージ">
+        <rect width="600" height="340" fill="#e6ecf0"/>
+        <g fill="#d3dde4"><rect x="30" y="30" width="150" height="90" rx="4"/><rect x="210" y="30" width="110" height="90" rx="4"/><rect x="350" y="30" width="210" height="90" rx="4"/><rect x="30" y="150" width="90" height="160" rx="4"/><rect x="150" y="150" width="200" height="70" rx="4"/><rect x="380" y="150" width="180" height="160" rx="4"/><rect x="150" y="250" width="200" height="60" rx="4"/></g>
+        <path d="M20 135H580M135 20V320M365 20V320M20 235H580" stroke="#fff" stroke-width="10"/>
+        <path d="M60 135H365V235H540" fill="none" stroke="#0b6e8a" stroke-width="5" stroke-linejoin="round"/>
+        <path d="M365 135V235" stroke="#c2410c" stroke-width="5"/>
+        <path d="M365 186c-14-18-22-28-22-40a22 22 0 0144 0c0 12-8 22-22 40z" fill="#c2410c"/>
+        <circle cx="365" cy="146" r="8" fill="#fff"/>
+        <circle cx="60" cy="135" r="9" fill="#12263a"/>
+        <circle cx="540" cy="235" r="9" fill="#12263a"/>
+      </svg>
+    </figure>
+  </section>
+
+  <!-- システム構成 -->
+  <section class="panel" id="hardware">
+    <div>
+      <h2>システム構成</h2>
+      <p>ESP32を中心に、環境センサーとGPSを制御する自律型プログラムです。</p>
+      <dl class="parts">
+        <dt>ESP32</dt><dd>全体の制御と判定処理を担当するマイコン。</dd>
+        <dt>BMP280</dt><dd>温度と気圧を計測。温度管理の逸脱と気圧の急変を検知します。</dd>
+        <dt>MPU6050</dt><dd>3軸加速度を計測。落下・衝突の衝撃を検知します。</dd>
+        <dt>GPSモジュール（NEO-6M等）</dt><dd>異常発生地点の緯度・経度を取得します。</dd>
+      </dl>
+    </div>
+    <!-- ↓ 実機の写真がある場合は <img src="images/board.jpg" alt="ESP32基板"> に差し替え -->
+    <figure class="visual">
+      <svg viewBox="0 0 600 340" role="img" aria-label="マイコン基板のイメージ">
+        <defs><linearGradient id="gP" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a2a1e"/><stop offset="1" stop-color="#103c2c"/></linearGradient></defs>
+        <rect width="600" height="340" fill="url(#gP)"/>
+        <g fill="none" stroke="#2fbf71" stroke-opacity=".55" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M215 130H120V60H30"/><path d="M215 160H70V230H30"/><path d="M215 200H150V300H60"/>
+          <path d="M385 130H470V60H570"/><path d="M385 170H520V230H570"/><path d="M385 205H450V300H540"/>
+          <path d="M260 92V40H340"/><path d="M300 92V20"/><path d="M270 248V300H330"/><path d="M335 248V320"/>
+        </g>
+        <g fill="#7dffb0"><circle cx="30" cy="60" r="6"/><circle cx="30" cy="230" r="6"/><circle cx="60" cy="300" r="6"/><circle cx="570" cy="60" r="6"/><circle cx="570" cy="230" r="6"/><circle cx="540" cy="300" r="6"/><circle cx="340" cy="40" r="6"/><circle cx="300" cy="20" r="6"/><circle cx="330" cy="300" r="6"/><circle cx="335" cy="320" r="6"/></g>
+        <g stroke="#c9d6db" stroke-width="9" stroke-dasharray="7 6" fill="none"><path d="M230 90H370"/><path d="M230 252H370"/><path d="M211 110V232"/><path d="M389 110V232"/></g>
+        <rect x="222" y="100" width="156" height="142" rx="5" fill="#141c20" stroke="#9fb3bd" stroke-width="2"/>
+        <rect x="248" y="126" width="104" height="90" rx="3" fill="none" stroke="#2fbf71" stroke-opacity=".5"/>
+        <text x="300" y="177" text-anchor="middle" font-size="22" font-weight="700" fill="#cfe9dc" font-family="sans-serif">ESP32</text>
+      </svg>
+    </figure>
+  </section>
+
+  <!-- 動作の流れ -->
+  <section class="panel" id="process">
+    <div>
+      <h2>動作の流れ</h2>
+      <p>常時受信と定時計測を組み合わせ、消費電力を抑えながら異常の瞬間を逃しません。</p>
+      <ol class="steps">
+        <li><b>GPSを常時受信</b><span>Serial2経由でバックグラウンド受信し、最新の位置・高度を保持。</span></li>
+        <li><b>1秒ごとに計測</b><span>温度・気圧・3軸加速度を一括取得。CPU負荷とバッテリー消費を抑制。</span></li>
+        <li><b>しきい値で判定</b><span>温度・衝撃・気圧の3項目を複合的にチェック。</span></li>
+        <li><b>異常時にログ出力</b><span>handleAnomaly()が起動し、アラートと位置情報URLを記録。</span></li>
+      </ol>
+    </div>
+    <figure class="visual">
+      <svg viewBox="0 0 600 340" role="img" aria-label="衝撃の計測値がしきい値を超える波形のイメージ">
+        <rect width="600" height="340" fill="#0f1b26"/>
+        <g stroke="#fff" stroke-opacity=".07"><path d="M0 85H600M0 170H600M0 255H600M100 0V340M200 0V340M300 0V340M400 0V340M500 0V340"/></g>
+        <path d="M20 110H580" stroke="#fb923c" stroke-width="2" stroke-dasharray="8 6"/>
+        <text x="580" y="100" text-anchor="end" font-size="14" fill="#fb923c" font-family="sans-serif">しきい値 2.0G</text>
+        <polyline points="20,230 60,224 100,234 140,226 180,232 220,225 260,231 300,227 340,233 370,226 390,52 405,300 420,190 440,232 480,226 520,231 580,228" fill="none" stroke="#4cc2e0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="390" cy="52" r="8" fill="#fb923c"/>
+        <text x="408" y="60" font-size="14" font-weight="700" fill="#fff" font-family="sans-serif">異常を記録</text>
+        <text x="20" y="320" font-size="12" fill="#93a4b3" font-family="sans-serif">1秒ごとの計測</text>
+      </svg>
+    </figure>
+  </section>
+
+  <!-- 異常検知の基準 -->
+  <section class="panel single" id="detection">
+    <div>
+      <h2>異常検知の基準</h2>
+      <p>3つの指標を組み合わせて、輸送中のリスクを監視します。</p>
+      <div class="metrics">
+        <div class="metric"><div class="k">温度異常</div><div class="v">35.0℃ 超</div><p>薬品や高級食品などの「温度管理逸脱」として判定します。</p></div>
+        <div class="metric"><div class="k">衝撃検知</div><div class="v">2.0G 以上</div><p>3軸の合成ベクトルから「落下・衝突事故」を判定します。</p></div>
+        <div class="metric"><div class="k">気圧急変</div><div class="v">5.0hPa 以上</div><p>短時間の変動から「不正開封」または「高所からの急落下」を判定します。</p></div>
+      </div>
+      <p class="note">衝撃の合成加速度：G = √(aₓ² + aᵧ² + a_z²)（重力加速度換算）／気圧：前回計測値との差分ΔPで判定</p>
+      <div class="scroll"><table>
+        <tr><th>項目</th><th>使用センサー</th><th>判定条件</th><th>想定される事象</th></tr>
+        <tr><td>温度</td><td>BMP280</td><td>35.0℃を超過</td><td>温度管理の逸脱</td></tr>
+        <tr><td>衝撃</td><td>MPU6050</td><td>合成加速度 2.0G以上</td><td>落下・衝突事故</td></tr>
+        <tr><td>気圧</td><td>BMP280</td><td>前回比 ΔP ≧ 5.0hPa</td><td>梱包の不正開封／高所からの急落下</td></tr>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 位置情報 -->
+  <section class="panel" id="location">
+    <div>
+      <h2>位置情報の紐づけ</h2>
+      <p>異常を検知した瞬間の「正確な緯度・経度（小数点以下6桁）」から、Google Maps用URLを自動生成。クリックするだけで発生場所を確認できます。</p>
+      <p>衛星未捕捉の場合は「測位中」のフラグを出力します。</p>
+      <p class="note">※ 右のログは表示イメージ用のサンプルです（実測データではありません）。</p>
+    </div>
+    <div class="visual">
 <pre>[ALERT] 衝撃検知：落下・衝突の可能性  (2.84G)
 [GPS ] 測位状態：有効
 [POS ] 緯度 35.681236 / 経度 139.767125
@@ -109,35 +327,58 @@ footer{padding:40px 0 56px;color:var(--muted);font-size:13px;border-top:1px soli
 
 [ALERT] 気圧急変：不正開封または急落下の可能性  (ΔP 6.2hPa)
 [GPS ] 測位状態：測位中</pre>
-<p class="note">※ 上記は表示イメージ用のサンプルです（実測データではありません）。</p>
-</section>
-<section id="login">
-<h2><small>LOGIN</small>管理ダッシュボードへログイン</h2>
-<p class="sub">ログインすると、輸送中のログをリアルタイムで確認できます（テスト用アカウント）。</p>
-<div class="card login" id="loginCard">
-<label for="uid">ID</label><input id="uid" autocomplete="username">
-<label for="pw">パスワード</label><input id="pw" type="password" autocomplete="current-password">
-<div class="er" id="er"></div>
-<button id="go">ログイン</button>
-</div>
-</section>
+    </div>
+  </section>
+
+  <!-- ログイン -->
+  <section class="panel" id="login">
+    <div>
+      <h2>管理ダッシュボードへログイン</h2>
+      <p>ログインすると、輸送中のログをリアルタイムで確認できます（テスト用アカウント）。</p>
+    </div>
+    <div class="login" id="loginCard">
+      <label for="uid">ID</label><input id="uid" autocomplete="username">
+      <label for="pw">パスワード</label><input id="pw" type="password" autocomplete="current-password">
+      <div class="er" id="er" role="alert"></div>
+      <button id="go" type="button">ログイン</button>
+    </div>
+  </section>
+
 </main>
 
-<footer><div class="wrap">大学プロジェクト授業 企画書掲載用｜システム制御・処理アルゴリズムの概要</div></footer>
+<footer>大学プロジェクト授業 企画書掲載用｜システム制御・処理アルゴリズムの概要</footer>
+
 <script>
-var DASH="dashboard.html";
+/* ── ログイン（これまでと同じ動作） ── */
+var DASH="https://claude.ai/artifact/JAhHbpdegcgWE2CyEZ3rwd";
 function doLogin(){
- var u=document.getElementById("uid").value.trim(),p=document.getElementById("pw").value;
- var er=document.getElementById("er");
- if(u==="aaa"&&p==="1234"){
-  var c=document.getElementById("loginCard");c.textContent="";
-  var m=document.createElement("p");m.textContent="ログインしました。";m.style.margin="0";
-  var a=document.createElement("a");a.className="go";a.href=DASH;a.textContent="管理ダッシュボードを開く";
-  c.appendChild(m);c.appendChild(a);
- }else{er.textContent="IDまたはパスワードが違います。";}
+  var u=document.getElementById("uid").value.trim(),p=document.getElementById("pw").value;
+  var er=document.getElementById("er");
+  if(u==="aaa"&&p==="1234"){
+    var c=document.getElementById("loginCard");c.textContent="";
+    var m=document.createElement("p");m.textContent="ログインしました。";m.style.margin="0";
+    var a=document.createElement("a");a.className="go";a.href=DASH;a.target="_blank";a.rel="noopener";a.textContent="管理ダッシュボードを開く";
+    c.appendChild(m);c.appendChild(a);
+  }else{er.textContent="IDまたはパスワードが違います。";}
 }
 document.getElementById("go").addEventListener("click",doLogin);
 document.getElementById("pw").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin();});
+
+/* ── メニュー ── */
+var btn=document.getElementById("menuBtn"),menu=document.getElementById("menu");
+function setMenu(open){
+  menu.classList.toggle("open",open);
+  btn.setAttribute("aria-expanded",open?"true":"false");
+  btn.setAttribute("aria-label",open?"メニューを閉じる":"メニューを開く");
+}
+btn.addEventListener("click",function(){setMenu(!menu.classList.contains("open"));});
+menu.addEventListener("click",function(e){if(e.target.tagName==="A")setMenu(false);});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")setMenu(false);});
+
+/* ── 先頭へ戻る ── */
+var top=document.getElementById("topBtn");
+window.addEventListener("scroll",function(){top.classList.toggle("show",window.scrollY>500);},{passive:true});
+top.addEventListener("click",function(){window.scrollTo({top:0});});
 </script>
 </body>
 </html>
