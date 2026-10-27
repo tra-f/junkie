@@ -376,9 +376,9 @@ menu.addEventListener("click",function(e){if(e.target.tagName==="A")setMenu(fals
 document.addEventListener("keydown",function(e){if(e.key==="Escape")setMenu(false);});
 
 /* ── 先頭へ戻る ── */
-var top=document.getElementById("topBtn");
-window.addEventListener("scroll",function(){top.classList.toggle("show",window.scrollY>500);},{passive:true});
-top.addEventListener("click",function(){window.scrollTo({top:0});});
+var toTopBtn=document.getElementById("topBtn");
+window.addEventListener("scroll",function(){toTopBtn.classList.toggle("show",window.scrollY>500);},{passive:true});
+toTopBtn.addEventListener("click",function(){window.scrollTo({top:0});});
 </script>
 </body>
 </html>
