@@ -90,6 +90,16 @@ main{max-width:1600px;margin:0 auto;padding:110px 112px 40px}
 .panel .full{grid-column:1 / -1}
 strong.lead-in{color:var(--navy)}
 
+/* ── よくあるお悩み ── */
+.worries{margin:0 0 60px}
+.worries h2{font-size:32px;color:var(--navy);margin:0 0 28px;padding:0 4px;line-height:1.5}
+.wgrid{display:grid;gap:34px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.wcard{background:#fff;border-radius:6px;padding:30px 36px 40px}
+.wcard svg{display:block;width:100%;max-width:300px;height:auto;margin:0 auto 18px}
+.wcard h3{margin:0 0 14px;text-align:center;font-size:21px;line-height:1.6;letter-spacing:.02em;text-wrap:balance;color:var(--navy)}
+.wcard p{margin:0;font-size:15px}
+@media (max-width:900px){.wgrid{grid-template-columns:minmax(0,1fr);gap:20px}.worries h2{font-size:26px}.wcard{padding:24px 24px 30px}}
+
 /* ── 構成 ── */
 dl.parts{margin:0}
 dl.parts dt{font-weight:700;color:var(--navy);margin-top:.6em}
@@ -165,6 +175,7 @@ footer{max-width:1600px;margin:0 auto;padding:10px 112px 56px;color:var(--muted)
 <!-- メニュー -->
 <button class="menu-btn" id="menuBtn" aria-label="メニューを開く" aria-expanded="false" aria-controls="menu"><span></span></button>
 <nav id="menu" aria-label="ページ内メニュー">
+  <a href="#worries">よくあるお悩み</a>
   <a href="#purpose">導入の目的</a>
   <a href="#hardware">システム構成</a>
   <a href="#process">動作の流れ</a>
@@ -208,6 +219,55 @@ footer{max-width:1600px;margin:0 auto;padding:10px 112px 56px;color:var(--muted)
         <circle cx="560" cy="60" r="9" fill="#fff"/>
       </svg>
     </figure>
+  </section>
+
+  <!-- よくあるお悩み -->
+  <section class="worries" id="worries">
+    <h2>よくあるお悩み</h2>
+    <div class="wgrid">
+
+      <article class="wcard">
+        <svg viewBox="0 0 300 190" role="img" aria-label="問い合わせに対して、記録が何もない">
+          <rect x="150" y="38" width="112" height="132" rx="8" fill="#f7f8f9" stroke="#9aa7b0" stroke-width="3" stroke-dasharray="9 7"/>
+          <path d="M172 78h68M172 104h68M172 130h40" stroke="#cfd6db" stroke-width="6" stroke-linecap="round"/>
+          <path d="M40 48h96a12 12 0 0112 12v52a12 12 0 01-12 12H84l-22 22v-22H40a12 12 0 01-12-12V60a12 12 0 0112-12z" fill="#0b6e8a"/>
+          <text x="88" y="106" text-anchor="middle" font-size="46" font-weight="700" fill="#fff" font-family="sans-serif">?</text>
+        </svg>
+        <h3>問い合わせに根拠を示せない</h3>
+        <p>買い手や発送元から破損の連絡が来ても、輸送中にどう扱われたかを示す記録がなく、説明が感覚頼みになってしまう。</p>
+      </article>
+
+      <article class="wcard">
+        <svg viewBox="0 0 300 190" role="img" aria-label="輸送の途中のどこで起きたか分からない">
+          <g transform="translate(160 95) scale(1.2) translate(-160 -95)">
+          <path d="M40 88H116M204 88H260" stroke="#12263a" stroke-width="6" stroke-linecap="round"/>
+          <path d="M116 88H204" stroke="#c2410c" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 12"/>
+          <g fill="#12263a"><circle cx="40" cy="88" r="12"/><circle cx="116" cy="88" r="12"/><circle cx="204" cy="88" r="12"/><circle cx="260" cy="88" r="12"/></g>
+          <g fill="#fff"><circle cx="40" cy="88" r="4.5"/><circle cx="116" cy="88" r="4.5"/><circle cx="204" cy="88" r="4.5"/><circle cx="260" cy="88" r="4.5"/></g>
+          <circle cx="160" cy="88" r="30" fill="#fff" stroke="#c2410c" stroke-width="5"/>
+          <text x="160" y="103" text-anchor="middle" font-size="40" font-weight="700" fill="#c2410c" font-family="sans-serif">?</text>
+          <g font-size="14" fill="#5d6872" text-anchor="middle" font-family="sans-serif"><text x="40" y="132">発送</text><text x="116" y="132">中継</text><text x="204" y="132">中継</text><text x="260" y="132">到着</text></g>
+          </g>
+        </svg>
+        <h3>どこで起きたか分からない</h3>
+        <p>複数の拠点や業者を経由するため、どの区間で衝撃や温度の逸脱が起きたのか特定できず、責任の押し付け合いになりやすい。</p>
+      </article>
+
+      <article class="wcard">
+        <svg viewBox="0 0 300 190" role="img" aria-label="破損した荷物と警告">
+          <rect x="62" y="74" width="132" height="92" fill="#e8c593" stroke="#c79a62" stroke-width="3"/>
+          <rect x="52" y="58" width="152" height="26" fill="#ddb67f" stroke="#c79a62" stroke-width="3"/>
+          <rect x="116" y="58" width="24" height="108" fill="#f3e0bb"/>
+          <path d="M128 84l-14 22 18 10-14 26" fill="none" stroke="#5a4630" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M226 36L190 100h72z" fill="#c2410c" stroke="#c2410c" stroke-width="8" stroke-linejoin="round"/>
+          <rect x="223" y="56" width="6" height="24" rx="3" fill="#fff"/>
+          <circle cx="226" cy="89" r="4" fill="#fff"/>
+        </svg>
+        <h3>信用・賠償のトラブルに発展</h3>
+        <p>原因をはっきり示せないまま、取引先からの信用低下や賠償の問題に発展してしまう。同じことが起きるのでは、という不安を抱えている。</p>
+      </article>
+
+    </div>
   </section>
 
   <!-- 導入の目的 -->
