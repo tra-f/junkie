@@ -463,14 +463,14 @@ footer{max-width:1600px;margin:0 auto;padding:10px 112px 56px;color:var(--muted)
 
 <script>
 /* ── ログイン（これまでと同じ動作） ── */
-var DASH="https://claude.ai/artifact/JAhHbpdegcgWE2CyEZ3rwd";
+var DASH="dashboard.html";
 function doLogin(){
   var u=document.getElementById("uid").value.trim(),p=document.getElementById("pw").value;
   var er=document.getElementById("er");
   if(u==="aaa"&&p==="1234"){
     var c=document.getElementById("loginCard");c.textContent="";
     var m=document.createElement("p");m.textContent="ログインしました。";m.style.margin="0";
-    var a=document.createElement("a");a.className="go";a.href=DASH;a.target="_blank";a.rel="noopener";a.textContent="管理ダッシュボードを開く";
+    var a=document.createElement("a");a.className="go";a.href=DASH;a.textContent="管理ダッシュボードを開く";
     c.appendChild(m);c.appendChild(a);
   }else{er.textContent="IDまたはパスワードが違います。";}
 }
